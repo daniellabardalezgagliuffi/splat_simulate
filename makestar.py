@@ -30,19 +30,25 @@ def makestar(age, mass, model='Burrows97'):
     interplogg = interpolate.interp2d(allages,allmasses,logg,kind='linear')
     interplogL = interpolate.interp2d(allages,allmasses,logL,kind='linear')
 
-    newteff = interpteff(age,mass)
-    newrad = interprad(age,mass)
-    newlogg = interplogg(age,mass)
-    newlogL = interplogL(age,mass)
-
-    starparams = [newteff,newrad,newlogg,newlogL]
-    
-    stardict = {'Teff (K)':newteff,'Radius (Rs)':newrad, 'log g':newlogg, 'log L':newlogL}    
+    if len(age) > 1:
+        newteff = np.zeros(len(age))
+        newrad = np.zeros(len(age))
+        newlogg = np.zeros(len(age))
+        newlogL = np.zeros(len(age))
+        for i in range(len(age)):
+            newteff[i] = interpteff(age[i],mass[i])
+            newrad[i] = interprad(age[i],mass[i])
+            newlogg[i] = interplogg(age[i],mass[i])
+            newlogL[i] = interplogL(age[i],mass[i])
+    else:
+        newteff = interpteff(age,mass)
+        newrad = interprad(age,mass)
+        newlogg = interplogg(age,mass)
+        newlogL = interplogL(age,mass)
+        
+    stardict = {'Mass (Ms)':mass, 'Age (Gyr)':age, 'Teff (K)':newteff,'Radius (Rs)':newrad, 'log g':newlogg, 'log L':newlogL}
     
     startable = Table(stardict)
     
     return startable
     
-ex = makestar(5,0.06)
-
-print(ex)
