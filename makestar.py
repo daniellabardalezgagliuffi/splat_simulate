@@ -1,12 +1,13 @@
-def makestar(age, mass, model):
+def makestar(age, mass, model='Burrows97'):
     
     import pandas as pd
     import numpy as np
     from scipy import interpolate
+    from astropy.table import Table
     
     if model == 'Burrows97':
 
-        burrows = pd.read_pickle("burrows97.pickle")
+        burrows = pd.read_pickle("/Users/daniella/Python/Thesis/simulations/burrows97.pickle")
         allages = np.array(burrows["Age (Gyr)"]) 
         allmasses = np.array(burrows["M/Ms"]) 
         teff = np.array(burrows["Teff"])
@@ -16,7 +17,7 @@ def makestar(age, mass, model):
         
     if model == 'Baraffe03':
         
-        baraffe = pd.read_pickle("baraffe03.pickle")
+        baraffe = pd.read_pickle("/Users/daniella/Python/Thesis/simulations/baraffe03.pickle")
         allages = np.array(baraffe["Age (Gyr)"]) 
         allmasses = np.array(baraffe["M/Ms"]) 
         teff = np.array(baraffe["Teff"])
@@ -24,10 +25,10 @@ def makestar(age, mass, model):
         logg = np.array(baraffe["logg(cgs)"])
         logL = np.array(baraffe["logL/Ls"])
 
-    interpteff = scipy.interpolate.interp2d(allages,allmasses,teff,kind='linear')
-    interprad = scipy.interpolate.interp2d(allages,allmasses,radius,kind='linear')
-    interplogg = scipy.interpolate.interp2d(allages,allmasses,logg,kind='linear')
-    interplogL = scipy.interpolate.interp2d(allages,allmasses,logL,kind='linear')
+    interpteff = interpolate.interp2d(allages,allmasses,teff,kind='linear')
+    interprad = interpolate.interp2d(allages,allmasses,radius,kind='linear')
+    interplogg = interpolate.interp2d(allages,allmasses,logg,kind='linear')
+    interplogL = interpolate.interp2d(allages,allmasses,logL,kind='linear')
 
     newteff = interpteff(age,mass)
     newrad = interprad(age,mass)
@@ -35,5 +36,13 @@ def makestar(age, mass, model):
     newlogL = interplogL(age,mass)
 
     starparams = [newteff,newrad,newlogg,newlogL]
-                
-    return starparams
+    
+    stardict = {'Teff (K)':newteff,'Radius (Rs)':newrad, 'log g':newlogg, 'log L':newlogL}    
+    
+    startable = Table(stardict)
+    
+    return startable
+    
+ex = makestar(5,0.06)
+
+print(ex)
