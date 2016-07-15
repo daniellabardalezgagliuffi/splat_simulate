@@ -1,13 +1,13 @@
+import pandas as pd
+import numpy as np
+from scipy import interpolate
+from astropy.table import Table
+
 def makestar(age, mass, model='Burrows97'):
-    
-    import pandas as pd
-    import numpy as np
-    from scipy import interpolate
-    from astropy.table import Table
     
     if model == 'Burrows97':
 
-        burrows = pd.read_pickle("/Users/daniella/Python/Thesis/simulations/burrows97.pickle")
+        burrows = pd.read_pickle("burrows97.pickle")
         allages = np.array(burrows["Age (Gyr)"]) 
         allmasses = np.array(burrows["M/Ms"]) 
         teff = np.array(burrows["Teff"])
@@ -17,7 +17,7 @@ def makestar(age, mass, model='Burrows97'):
         
     if model == 'Baraffe03':
         
-        baraffe = pd.read_pickle("/Users/daniella/Python/Thesis/simulations/baraffe03.pickle")
+        baraffe = pd.read_pickle("baraffe03.pickle")
         allages = np.array(baraffe["Age (Gyr)"]) 
         allmasses = np.array(baraffe["M/Ms"]) 
         teff = np.array(baraffe["Teff"])
