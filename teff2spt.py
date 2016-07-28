@@ -7,6 +7,8 @@ Created on Thu Jul 21 17:03:06 2016
 
 def invertTeffSpTrel():
 
+    '''Never to be used again, but as record of how Teff2spt coefficients were found.''''
+
     import numpy as np
     from numpy.polynomial.polynomial import polyval, polyder
     import splat
@@ -89,10 +91,11 @@ def spt2teff(spt):
 
 def teff2spt(teff):
     
+    '''Calculates optical spectral type using Teff and Filippazzo et al. 2015 relation'''
     #based on filippazzo et al. 2015    
     newcoeffs = [ -5.38389120e-12, 3.73242761e-08, -8.74866546e-05, 6.82777082e-02, 1.20261522e+01]    
     sptfunc = np.poly1d(newcoeffs)
-    sptn = sptfunc(teff)+10
+    sptn = sptfunc(teff)+10   #Burgasset SpTn notation
     
     spt = np.zeros(len(sptn))
     
