@@ -4,7 +4,7 @@ from scipy import interpolate
 from astropy.table import Table
 import warnings
 
-def makestar(age, mass, model='Burrows97'):
+def makestar(mass, age, model='Burrows97'):
 
     if np.min(mass) < 0.0005:
         raise NameError('Mass below minimum mass of 0.0005Msun')
