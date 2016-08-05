@@ -48,7 +48,7 @@ def generate_masses(mass_range,distrub='Chabrier',n_samples=10000):
         cdf = np.append(cdf, _cdf_highmass_Kroupa(rang[rang > m_1]))
         inv_cdf = interpolate.interp1d(cdf, rang)
     else:
-        print "The " + distrub + " IMF is not provided in this method"
+        raise NameError("The " + distrub + " IMF is not provided in this method")
         return None 
     r = np.random.uniform(np.min(cdf),np.max(cdf),n_samples) 
     return inv_cdf(r)
