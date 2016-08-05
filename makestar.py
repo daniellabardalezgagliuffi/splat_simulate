@@ -21,7 +21,7 @@ def makestar(mass, age, model='Burrows97'):
 
     if model == 'Burrows97':
         #0.0005 - 0.2 Msun
-        burrows = pd.read_pickle("/Users/daniella/Python/Thesis/simulations/burrows97.pickle")
+        burrows = pd.read_pickle("burrows97.pickle")
         allages = burrows["Age (Gyr)"]
         allmasses = burrows["M/Ms"]
         teff = burrows["Teff"]
@@ -31,7 +31,7 @@ def makestar(mass, age, model='Burrows97'):
         
     if model == 'Baraffe03':
         #0.0005 - 0.1 Msun
-        baraffe = pd.read_pickle("/Users/daniella/Python/Thesis/simulations/baraffe03.pickle")
+        baraffe = pd.read_pickle("baraffe03.pickle")
         allages = baraffe["Age (Gyr)"]
         allmasses = baraffe["M/Ms"]
         teff = baraffe["Teff"]
