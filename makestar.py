@@ -1,10 +1,12 @@
-import pandas as pd
-import numpy as np
-from scipy import interpolate
-from astropy.table import Table
-import warnings
-
 def makestar(mass, age, model='Burrows97'):
+    
+    '''Calculates stellar properties such as Teff, radii, logg and logL using evolutionary models
+    '''
+    import pandas as pd
+    import numpy as np
+    from scipy import interpolate
+    from astropy.table import Table
+    import warnings
 
     if np.min(mass) < 0.0005:
         raise NameError('Mass below minimum mass of 0.0005Msun')
@@ -19,47 +21,45 @@ def makestar(mass, age, model='Burrows97'):
 
     if model == 'Burrows97':
         #0.0005 - 0.2 Msun
-        burrows = pd.read_pickle("burrows97.pickle")
-        allages = np.array(burrows["Age (Gyr)"]) 
-        allmasses = np.array(burrows["M/Ms"]) 
-        teff = np.array(burrows["Teff"])
-        radius = np.array(burrows["R/Rs"])
-        logg = np.array(burrows["logg(cgs)"])
-        logL = np.array(burrows["logL/Ls"])
+        burrows = pd.read_pickle("/Users/daniella/Python/Thesis/simulations/burrows97.pickle")
+        allages = burrows["Age (Gyr)"]
+        allmasses = burrows["M/Ms"]
+        teff = burrows["Teff"]
+        radius = burrows["R/Rs"]
+        logg = burrows["logg(cgs)"]
+        logL = burrows["logL/Ls"]
         
     if model == 'Baraffe03':
         #0.0005 - 0.1 Msun
-        baraffe = pd.read_pickle("baraffe03.pickle")
-        allages = np.array(baraffe["Age (Gyr)"]) 
-        allmasses = np.array(baraffe["M/Ms"]) 
-        teff = np.array(baraffe["Teff"])
-        radius = np.array(baraffe["R/Rs"])
-        logg = np.array(baraffe["logg(cgs)"])
-        logL = np.array(baraffe["logL/Ls"])
+        baraffe = pd.read_pickle("/Users/daniella/Python/Thesis/simulations/baraffe03.pickle")
+        allages = baraffe["Age (Gyr)"]
+        allmasses = baraffe["M/Ms"]
+        teff = baraffe["Teff"]
+        radius = baraffe["R/Rs"]
+        logg = baraffe["logg(cgs)"]
+        logL = baraffe["logL/Ls"]
 
     interpteff = interpolate.interp2d(allages,allmasses,teff,kind='linear')
     interprad = interpolate.interp2d(allages,allmasses,radius,kind='linear')
     interplogg = interpolate.interp2d(allages,allmasses,logg,kind='linear')
-    interplogL = interpolate.interp2d(allages,allmasses,logL,kind='linear')
-
-    if len(age) > 1:
-        newteff = np.zeros(len(age))
-        newrad = np.zeros(len(age))
-        newlogg = np.zeros(len(age))
-        newlogL = np.zeros(len(age))
-        for i in range(len(age)):
-            newteff[i] = interpteff(age[i],mass[i])
-            newrad[i] = interprad(age[i],mass[i])
-            newlogg[i] = interplogg(age[i],mass[i])
-            newlogL[i] = interplogL(age[i],mass[i])
-    else:
-        newteff = interpteff(age,mass)
-        newrad = interprad(age,mass)
-        newlogg = interplogg(age,mass)
-        newlogL = interplogL(age,mass)
+    interplogL = interpolate.interp2d(allages,allmasses,logL,kind='linear')  
         
-    stardict = {'Mass (Ms)':mass, 'Age (Gyr)':age, 'Teff (K)':newteff,'Radius (Rs)':newrad, 'log g':newlogg, 'log L':newlogL}
+    mass = np.array(mass).flatten()
+    age = np.array(age).flatten()
+    
+    newteff = np.array([interpteff(i,j) for i,j in zip(age,mass)])
+    newrad = np.array([interprad(i,j) for i,j in zip(age,mass)])
+    newlogg = np.array([interplogg(i,j) for i,j in zip(age,mass)])
+    newlogL = np.array([interplogL(i,j) for i,j in zip(age,mass)])
+
+#    starparams = [newteff,newrad,newlogg,newlogL]
+    
+    stardict = {'Teff (K)':newteff,'Radius (Rs)':newrad, 'log g':newlogg, 'log L':newlogL}    
     
     startable = Table(stardict)
     
     return startable
+    
+ex = makestar([0.06,0.09],[5,8])
+
+print(ex)
