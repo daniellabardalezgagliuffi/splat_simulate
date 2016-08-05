@@ -1,16 +1,6 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Aug 04 16:22:33 2016
-
-@author: Caleb
-"""
-
-import pandas as pd
 import numpy as np
 from scipy import interpolate
-#from astropy.table import Table
 from scipy.special import erfc
-import matplotlib.pyplot as plt
    
 # Chabrier CDF taken from Jumper & Fisher (2013) w/ params from Chabrier (2005)
 def _cdf_lowmass_Chabrier(mass):
@@ -34,6 +24,8 @@ def _cdf_highmass_Kroupa(mass):
     m_1 = 0.5; a_3 = 2.3; A = 1.785; C = 0.86469; k_2 = 0.04;
     return C + A * k_2 / (1-a_3) * (np.power(mass, 1-a_3) - np.power(m_1, 1-a_3))
 
+# Takes a 2 element array representing the mass range for the provided IMF 
+# distribution and produces n_samples number of stars in the given mass range
 def generate_masses(mass_range,distrub='Chabrier',n_samples=10000):
     rang = np.arange(mass_range[0],mass_range[1],0.001)
     if distrub == 'Chabrier':
