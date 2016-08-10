@@ -10,7 +10,7 @@ def densities(lffile = None, colors = None, interp = True, size = 10000):
     '''
 
     if lffile is None:
-        lffile = os.path.dirname(os.path.realpath(__file__)) + \
+        lffile = os.path.dirname(os.path.realpath((__file__))) + \
                  '/LFs/Reyle_2010_J_LF.csv'
 
     # Check if the file exists
