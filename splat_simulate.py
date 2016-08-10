@@ -6,6 +6,7 @@ Authors:
     Chris Theissen
 """
 
+import splat
 import numpy as np
 import os
 from astropy.table import Table
@@ -13,32 +14,32 @@ import scipy.interpolate as interpolate
 import matplotlib.pyplot as plt
 from scipy.special import erfc
 from scipy.stats import powerlaw
+import pandas as pd
+import warnings
 
 def test():
 
+    #f, axarr = plt.subplots(4, figsize=(6,8) )
+
+    #density = densities()
+    #ages = ages(10000, [1,10])
+    #masses = generate_masses([.01,.1])
+    #starTable = make_star(masses,ages)
+
     u,v,w = uvw(0.5)
-    #um,vm,wm = uvw_ave(10)
-    #print um,vm,wm
     um,vm,wm = uvw_ave2(u)
-    #print um,vm,wm
     Us = np.random.normal(um, u, 10000)
     Vs = np.random.normal(vm, v, 10000)
     Ws = np.random.normal(wm, w, 10000)
 
     u1,v1,w1 = uvw(3)    
-    #um1,vm1,wm1 = uvw_ave(1)
-    #print um1,vm1,wm1 
     um1,vm1,wm1 = uvw_ave2(u1)
-    #print um1,vm1,wm1
     Us1 = np.random.normal(um1, u1, 10000)
     Vs1 = np.random.normal(vm1, v1, 10000)
     Ws1 = np.random.normal(wm1, w1, 10000)
 
     u2,v2,w2 = uvw(10)
-    #um,vm,wm = uvw_ave(10)
-    #print um,vm,wm
     um2,vm2,wm2 = uvw_ave2(u2)
-    #print um,vm,wm
     Us2 = np.random.normal(um2, u2, 10000)
     Vs2 = np.random.normal(vm2, v2, 10000)
     Ws2 = np.random.normal(wm2, w2, 10000)
@@ -68,6 +69,75 @@ def test():
     axarr[1].set_aspect('equal', 'datalim')
     plt.tight_layout()
     plt.show()
+
+def make_star(mass,age,model='burrow'):
+    if np.min(mass) < 0.0005:
+        raise NameError('Mass below minimum mass of 0.0005Msun')
+    if np.max(mass) > 0.1 and model=='baraffe':
+       warnings.warn('Mass above maximum mass of 0.1Msun for Baraffe 2003. Using Burrows 1997 instead.')  
+       model = 'burrows'
+    if np.min(mass) > 0.2:
+        raise NameError('Mass above maximum mass of 0.2Msun for Burrows 1997')  
+        
+    model = splat.bdevopar.ReadModel(model)
+    star_list = splat.bdevopar.Parameters(model, masses=mass, ages=age)
+    return star_list
+
+# This is broken Daniella.
+def bad_make_star(mass, age, model='Burrows97'):
+    
+    '''
+    Calculates stellar properties such as Teff, radii, logg and logL using evolutionary models
+    '''
+
+    if np.min(mass) < 0.0005:
+        raise NameError('Mass below minimum mass of 0.0005Msun')
+
+    if np.max(mass) > 0.1 and model=='Baraffe03':
+       warnings.warn('Mass above maximum mass of 0.1Msun for Baraffe 2003. Using Burrows 1997 instead.')  
+       model = 'Burrows97'
+
+    if np.min(mass) > 0.2:
+        raise NameError('Mass above maximum mass of 0.2Msun for Burrows 1997')    
+
+    if model == 'Burrows97':
+        #0.0005 - 0.2 Msun
+        burrows = pd.read_pickle("burrows97.pickle")
+        allages = burrows["Age (Gyr)"]
+        allmasses = burrows["M/Ms"]
+        teff = burrows["Teff"]
+        radius = burrows["R/Rs"]
+        logg = burrows["logg(cgs)"]
+        logL = burrows["logL/Ls"]
+        
+    if model == 'Baraffe03':
+        #0.0005 - 0.1 Msun
+        baraffe = pd.read_pickle("baraffe03.pickle")
+        allages = baraffe["Age (Gyr)"]
+        allmasses = baraffe["M/Ms"]
+        teff = baraffe["Teff"]
+        radius = baraffe["R/Rs"]
+        logg = baraffe["logg(cgs)"]
+        logL = baraffe["logL/Ls"]
+
+    interpteff = interpolate.interp2d(allages,allmasses,teff,kind='linear')
+    interprad = interpolate.interp2d(allages,allmasses,radius,kind='linear')
+    interplogg = interpolate.interp2d(allages,allmasses,logg,kind='linear')
+    interplogL = interpolate.interp2d(allages,allmasses,logL,kind='linear')  
+        
+    mass = np.array(mass).flatten()
+    age = np.array(age).flatten()
+    
+    newteff = np.array([interpteff(i,j) for i,j in zip(age,mass)])
+    newrad = np.array([interprad(i,j) for i,j in zip(age,mass)])
+    newlogg = np.array([interplogg(i,j) for i,j in zip(age,mass)])
+    newlogL = np.array([interplogL(i,j) for i,j in zip(age,mass)])
+    
+    stardict = {'Teff (K)':newteff,'Radius (Rs)':newrad, 'log g':newlogg, 'log L':newlogL}    
+    
+    starTable = Table(stardict)
+    
+    return starTable
 
 def uvw(tau0):
 
@@ -130,7 +200,7 @@ def densities(lffile = None, colors = None, interp = True, size = 10000):
     '''
 
     if lffile is None:
-        lffile = os.path.dirname(os.path.realpath(__file__)) + \
+        lffile = os.path.dirname(os.path.realpath("__file__")) + \
                  '/LFs/Reyle_2010_J_LF.csv'
 
     # Check if the file exists
@@ -178,15 +248,15 @@ def _cdf_highmass_Chabrier(mass):
 # k values used to connect each part of the Kroupa IMF
 def _cdf_lowmass_Kroupa(mass):
     a_1 = 0.3; A = 1.785;
-    return A * np.power(mass, 1-a_1) / (1 - a_1)
+    return A * np.power(mass, 1.-a_1) / (1.-a_1)
 
 def _cdf_midmass_Kroupa(mass):
     m_0 = 0.08; a_2 = 1.3; A = 1.785; B = 0.4352; k_1 = 0.08;
-    return B + A * k_1 / (1-a_2) * (np.power(mass, 1-a_2) - np.power(m_0, 1-a_2))
+    return B + A * k_1 / (1.-a_2) * (np.power(mass, 1.-a_2) - np.power(m_0, 1.-a_2))
     
 def _cdf_highmass_Kroupa(mass):
     m_1 = 0.5; a_3 = 2.3; A = 1.785; C = 0.86469; k_2 = 0.04;
-    return C + A * k_2 / (1-a_3) * (np.power(mass, 1-a_3) - np.power(m_1, 1-a_3))
+    return C + A * k_2 / (1.-a_3) * (np.power(mass, 1.-a_3) - np.power(m_1, 1.-a_3))
 
 # Takes a 2 element array representing the mass range for the provided IMF 
 # distribution and produces n_samples number of stars in the given mass range
