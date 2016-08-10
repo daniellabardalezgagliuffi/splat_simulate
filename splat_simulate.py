@@ -12,7 +12,7 @@ from astropy.table import Table
 import scipy.interpolate as interpolate
 import matplotlib.pyplot as plt
 from scipy.special import erfc
-from scipy.stats.powerlaw import rvs
+from scipy.stats import powerlaw
 
 def test():
 
@@ -213,7 +213,7 @@ def generate_masses(mass_range,distrub='Chabrier',n_samples=10000):
 def qdist(nsamples):
     #From Allen 2007
     gamma = 1.8
-    randomq = rvs(gamma+1,size=nsamples)
+    randomq = powerlaw.rvs(gamma+1,size=nsamples)
 
     return randomq
 
